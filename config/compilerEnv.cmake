@@ -47,15 +47,27 @@ macro( query_openmp_availability )
     message( STATUS "Looking for OpenMP...")
     find_package(OpenMP QUIET)
     if( OPENMP_FOUND )
-        message( STATUS "Looking for OpenMP... ${OpenMP_C_FLAGS} (supporting the "
-          "${OpenMP_C_VERSION} standard)")
       if( OpenMP_C_VERSION VERSION_LESS 3.0 )
-        message( STATUS "OpenMP standard support is too old (< 3.0). Disabling OpenMP build "
-          "features.")
-        set(OPENMP_FOUND FALSE)
-        set(OpenMP_C_FLAGS "" CACHE BOOL "OpenMP disabled (too old)." FORCE)
+        if( MSVC AND MSVC_VERSION VERSION_GREATER 1920 )
+          # Hijack cmake's settings and use the LLVM OpenMP library (could use a try-compile?)
+          foreach (lang C CXX)
+            set(OpenMP_${lang}_FLAGS "/openmp:llvm" CACHE BOOL 
+              "Use LLVM OpenMP instead of MSVC's version." FORCE)
+            set(OpenMP_${lang}_VERSION "3.1" CACHE BOOL "Use LLVM OpenMP instead of MSVC's version."
+              FORCE)
+          endforeach()
+        else()
+          message( STATUS "OpenMP standard support is too old (< 3.0). Disabling OpenMP build "
+            "features.")
+          set(OPENMP_FOUND FALSE)
+          set(OpenMP_C_FLAGS "" CACHE BOOL "OpenMP disabled (too old)." FORCE)
+        endif()
       endif()
       set( OPENMP_FOUND ${OPENMP_FOUND} CACHE BOOL "Is OpenMP available?" FORCE )
+      if( OPENMP_FOUND)
+        message( STATUS "Looking for OpenMP... ${OpenMP_C_FLAGS} (supporting the "
+          "${OpenMP_C_VERSION} standard)")
+      endif()
     else()
       message(STATUS "Looking for OpenMP... not found")
     endif()

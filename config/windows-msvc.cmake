@@ -100,7 +100,7 @@ endif()
 #
 # Toggle compiler flags for optional features
 #
-if( NOT "${OpenMP_C_FLAGS}x" STREQUAL "x" )
+if( OpenMP_C_FLAGS )
   toggle_compiler_flag( OPENMP_FOUND ${OpenMP_C_FLAGS} "C;CXX" "" )
 endif()
 
